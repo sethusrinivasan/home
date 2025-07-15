@@ -1,1 +1,1 @@
-[Quotes](https://website-name.com 'Quotes')
+[Quotes](https://sethusrinivasan.github.io/home/quotes.html 'Quotes')
