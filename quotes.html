@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>10 Inspirational Quotes – Keynote Ready</title>
+  <style>
+    html,body{margin:0;height:100%;background:linear-gradient(#121315,#1a1d20);font-family:-apple-system,BlinkMacSystemFont,"SF Pro","Helvetica Neue",Arial,sans-serif}
+    canvas{display:block}
+  </style>
+</head>
+<body>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.163.0/build/three.module.js",
+      "addons/": "https://unpkg.com/three@0.163.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { FontLoader }   from 'addons/loaders/FontLoader.js';
+    import { TextGeometry } from 'addons/geometries/TextGeometry.js';
+
+    /* ---------- 10 best quotes ---------- */
+    const quotes = [
+      {txt:"Stay hungry,\nstay foolish.", src:"— Steve Jobs"},
+      {txt:"The only way to do\ngreat work is to love\nwhat you do.", src:"— Steve Jobs"},
+      {txt:"Think different.", src:"— Apple Inc."},
+      {txt:"Simplicity is the\nultimate sophistication.", src:"— Leonardo da Vinci"},
+      {txt:"Life is 10 % what\nhappens and 90 % how\nyou react.", src:"— Charles Swindoll"},
+      {txt:"Whether you think\nyou can or can’t,\nyou’re right.", src:"— Henry Ford"},
+      {txt:"It does not matter\nhow slowly you go\nas long as you do\nnot stop.", src:"— Confucius"},
+      {txt:"Believe you can\nand you’re halfway\nthere.", src:"— Theodore Roosevelt"},
+      {txt:"Your time is limited,\ndon’t waste it living\nsomeone else’s life.", src:"— Steve Jobs"},
+      {txt:"Success is not final,\nfailure is not fatal:\nit is the courage\nto continue that counts.", src:"— Winston Churchill"}
+    ];
+
+    /* ---------- three basics ---------- */
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, innerWidth/innerHeight, 0.1, 100);
+    camera.position.set(0, 0, 12);
+
+    const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    /* ---------- lighting ---------- */
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const key = new THREE.DirectionalLight(0xffffff, 1.0);
+    key.position.set(0, 4, 5);
+    scene.add(key);
+
+    /* ---------- material ---------- */
+    const mat = new THREE.MeshStandardMaterial({
+      color:0xffffff,
+      metalness:0.05,
+      roughness:0.25,
+      transparent:true,
+      opacity:0
+    });
+
+    let mesh, srcMesh, idx = 0;
+
+    /* ---------- fade helper ---------- */
+    function fade(obj, to, ms, done){
+      const from = obj.opacity, start = Date.now();
+      function tick(){
+        const t = Math.min((Date.now() - start) / ms, 1);
+        obj.opacity = from + (to - from) * t;
+        if (t < 1) requestAnimationFrame(tick); else if (done) done();
+      }
+      tick();
+    }
+
+    /* ---------- show quote ---------- */
+    function show(){
+      const {txt, src} = quotes[idx];
+      if (mesh) scene.remove(mesh);
+      if (srcMesh) scene.remove(srcMesh);
+
+      new FontLoader().load(
+        'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
+        font=>{
+          /* main text */
+          const g1 = new TextGeometry(txt,{font,size:0.8,height:0.05,bevelEnabled:false});
+          g1.center();
+          mesh = new THREE.Mesh(g1,mat);
+          scene.add(mesh);
+
+          /* italic, dimmed source in lower-right */
+          const g2 = new TextGeometry(src,{font,size:0.22,height:0.02,bevelEnabled:false});
+          g2.computeBoundingBox();
+          const w = g2.boundingBox.max.x - g2.boundingBox.min.x;
+          const srcMat = mat.clone();
+          srcMat.opacity = 0.45;                // mellowed brightness
+          srcMesh = new THREE.Mesh(g2,srcMat);
+          srcMesh.position.set(-w/2,-2.4,0);
+          scene.add(srcMesh);
+
+          /* fade in → hold → fade out → next */
+          fade(mat,1,12000);
+          setTimeout(()=>fade(mat,0,12000,next),12000+1000);
+        }
+      );
+    }
+
+    function next(){
+      idx = (idx + 1) % quotes.length;
+      show();
+    }
+    show();
+
+    /* ---------- render loop ---------- */
+    function render(){
+      requestAnimationFrame(render);
+      renderer.render(scene,camera);
+    }
+    render();
+
+    addEventListener('resize',()=>{
+      camera.aspect=innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth,innerHeight);
+    });
+  </script>
+</body>
+</html>
